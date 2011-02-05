@@ -1,13 +1,18 @@
-['rubygems', 'gdocs4ruby', 'logger', 'mail', 'StripeStore'].each { |r| require r }
+require 'rubygems'
+require 'gdocs4ruby'
+require 'logger'
+require 'mail'
+require 'StripeStore'
 
 # Class StripeEmail
 # Stores data using pstore, initializes pad, and can be used to query pad
 class StripeEmail
-    @@log = Logger.new('stripe_email.log')
+    @@log = Logger.new('edits-benedict.log')
 
 	attr_accessor :from, :to, :subject, :body, :admin
 	attr_reader :pad_id, :last_modified, :content, :created_at
 
+    # Updates class variables last_modified and content
     def query_pad
         doc = GDocs4Ruby::Document.find(@service, { :id => @pad_id })
         @content = doc.get_content('txt')
@@ -20,10 +25,18 @@ class StripeEmail
         @from, @to, @subject, @body = from, to, subject, body
 	    @admin = 'chandrasekaran.siddarth@gmail.com'
 	    @editors = ['chandrasekaran.siddarth@gmail.com']
+
+        # Initialize the GDocs4Ruby service and authenticate
         @service = GDocs4Ruby::Service.new()
-        @service.authenticate('siddarth.bot@gmail.com', '') 
+        @service.authenticate('siddarth.bot@gmail.com', '')
+
+        # Initialize Google doc
 	    @pad_id = initialize_pad()
+
+        # Store email in pstore
 	    store()
+
+        # Send the email to admin
 	    send_admin_email()
 	end
 	
@@ -44,13 +57,14 @@ class StripeEmail
         return pad_id
     end
 	
-	# Store in a pstore
+	# Store the email locally
 	def store()
         StripeStore.new.insert(self)
     end
 
+    # Send email to admins notifying them of the email ID
 	def send_admin_email()
-	    email_body = "This is an email review request from #{@from}. Please make any changes at #{generate_url}\n\n."
+	    email_body = "This is an email review request from #{@from}. Please make any changes at #{generate_url}\n\n. Love,\nThe StripeBot\n\n#{@body}"
         email_subject = "[EMAIL REVIEW] #{@subject}"
         email_to = @editors.join(',')
 	    mail = Mail.new do
