@@ -23,8 +23,6 @@ class StripeEmail
 	def initialize(from, to, subject, body)
         @created_at = Time.new
         @from, @to, @subject, @body = from, to, subject, body
-	    @admin = 'chandrasekaran.siddarth@gmail.com'
-	    @editors = ['chandrasekaran.siddarth@gmail.com']
 
         # Initialize the GDocs4Ruby service and authenticate
         @service = GDocs4Ruby::Service.new()
@@ -38,6 +36,11 @@ class StripeEmail
 
         # Send the email to admin
 	    send_admin_email()
+
+        # Config
+        @@config = YAML.load('edits-benedict.conf')
+	    @admin = @@config['users']['admin']
+	    @editors = @@config['users']['editors']
 	end
 	
     # Initialize a pad with @body
@@ -64,11 +67,11 @@ class StripeEmail
 
     # Send email to admins notifying them of the email ID
 	def send_admin_email()
-	    email_body = "This is an email review request from #{@from}. Please make any changes at #{generate_url}\n\n. Love,\nThe StripeBot\n\n#{@body}"
-        email_subject = "[EMAIL REVIEW] #{@subject}"
-        email_to = @editors.join(',')
+	    admin_email_body = sprintf(@@config['email']['body'], @from, generate_url, @body)
+        admin_email_subject = sprintf(@@config['email']['subject'], @subject)
+        editors = @editors.join(',')
 	    mail = Mail.new do
-            from 'bot@stripe.com'
+            from @admin
             to email_to
             subject email_subject
             body email_body
