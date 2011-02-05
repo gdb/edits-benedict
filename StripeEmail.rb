@@ -21,12 +21,20 @@ class StripeEmail
 
     # Initialize class variables and populate etherpad
 	def initialize(from, to, subject, body)
+
+        # Config
+        @@config = YAML.load('edits-benedict.conf')
+	    @admin = @@config['users']['admin']
+	    @editors = @@config['users']['editors']
+
         @created_at = Time.new
         @from, @to, @subject, @body = from, to, subject, body
 
         # Initialize the GDocs4Ruby service and authenticate
         @service = GDocs4Ruby::Service.new()
-        @service.authenticate('siddarth.bot@gmail.com', '')
+        email = @@config['gdocs-credentials']['username']
+        password = @@config['gdocs-credentials']['password']
+        @service.authenticate(email, password)
 
         # Initialize Google doc
 	    @pad_id = initialize_pad()
@@ -36,11 +44,6 @@ class StripeEmail
 
         # Send the email to admin
 	    send_admin_email()
-
-        # Config
-        @@config = YAML.load('edits-benedict.conf')
-	    @admin = @@config['users']['admin']
-	    @editors = @@config['users']['editors']
 	end
 	
     # Initialize a pad with @body
