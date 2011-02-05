@@ -23,7 +23,7 @@ class StripeEmail
 	def initialize(from, to, subject, body)
 
         # Config
-        @@config = YAML.load('edits-benedict.conf')
+        @@config = YAML.load('edits-benedict-cred.conf')
 	    @admin = @@config['users']['admin']
 	    @editors = @@config['users']['editors']
 
