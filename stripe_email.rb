@@ -13,7 +13,6 @@ class StripeEmail
     log_file = @@config['log']
     @@log = Logger.new(log_file)
 
-    attr_accessor :from, :to, :subject, :body, :admin, :mail_str
     attr_reader :pad_id, :last_modified, :content, :created_at, :mail, :argv
 
     # Updates class variables last_modified and content
@@ -27,21 +26,12 @@ class StripeEmail
     def initialize(mail, argv)
 
         @admin = @@config['users']['admin']
-        @editors = @@config['users']['editors']
+        @editors = @@config['users']['editors'].join(',')
 
         @created_at = Time.new
         @mail = mail
         @mail_str = mail.to_s
         @argv = argv
-
-        # Initialize Google doc
-        @pad_id = initialize_pad()
-
-        # Store email in pstore
-        store()
-
-        # Send the email to admin
-        send_admin_email()
     end
     
     # Initialize a pad with @body
@@ -69,7 +59,12 @@ class StripeEmail
         @pad_id = pad_id
         @editors.each { |email| doc.add_access_rule(email, 'writer') }
         @@log.debug "Google Document initialized with pad_id: #{pad_id}"
-        return pad_id
+
+        # Store email in pstore
+        store()
+
+        # Send the email to admin
+        send_admin_email()
     end
     
     # Store the email locally
@@ -82,7 +77,7 @@ class StripeEmail
         admin_email_from = @admin
         admin_email_body = sprintf(@@config['email']['body'], @mail.from, generate_url, @mail.body)
         admin_email_subject = @@config['email']['subject_prefix'] + " #{@subject}"
-        editors = @editors.join(',')
+        editors = @editors
         admin_email = Mail.new do
             from admin_email_from
             to editors

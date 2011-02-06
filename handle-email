@@ -8,4 +8,5 @@ require 'mail'
 mail_str = STDIN.read
 mail = Mail.new(mail_str)
 
-StripeEmail.new(mail, ARGV)
+stripe_email_object = StripeEmail.new(mail, ARGV)
+stripe_email_object.initialize_pad()
