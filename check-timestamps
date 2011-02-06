@@ -13,16 +13,16 @@ log_file = config['log']
 log = Logger.new(log_file)
 
 store.emails.each { |subject|
-    stripe_email = store.get_email(subject)
-    email = stripe_email.mail
+    stripe_email_object = store.get_email(subject)
+    email = stripe_email_object.mail
 
     # Update values
-    stripe_email.query_pad
+    stripe_email_object.query_pad
     log.debug "Checking timestamps for email from #{email.from} to #{email.to} with subject #{email.subject}"
 
     current_time = Time.new
-    last_modified = stripe_email.last_modified
-    created_at = stripe_email.created_at
+    last_modified = stripe_email_object.last_modified
+    created_at = stripe_email_object.created_at
 
     # See if it's been created at least an hour ago
     next if (current_time - created_at < config['wait-time']['created'])
@@ -33,16 +33,16 @@ store.emails.each { |subject|
     next if (current_time - last_modified < config['wait-time']['last-modified'])
 
     # Set up email
-    content = stripe_email.content
+    content = stripe_email_object.content
     email.body = content
     email_string = email.to_s
 
     log.debug "Sending email"
 
-  cmd = ['/etc/postfix/filter'] + stripe_email.argv
-  Open3.popen3(*cmd) do |stdin, stdout, stderr|
+    cmd = ['/etc/postfix/filter'] + stripe_email_object.argv
+    Open3.popen3(*cmd) do |stdin, stdout, stderr|
     stdin.write(email_string)
-  end
+    end
 
-  store.delete(subject)
+    store.delete(subject)
 }

@@ -53,15 +53,20 @@ class StripeEmail
     # Initialize a pad with @body
     def initialize_pad()
         @@log.debug "Initializing a new Google Document."
+
+        # Populate google doc
         doc = GDocs4Ruby::Document.new(@service)
         doc.title = "Email Review: #{@mail.subject}"
         doc.content = @mail.body.to_s
         doc.content_type = 'txt'
         doc.save
-        # XXX: Here comes a small hack.
-        pad_id = doc.id[9..-1]
+
+        # Get the id of the document for future use
+        pad_id = doc.id
+        pad_id.slice!('document:')
+        @pad_id = pad_id
         @editors.each { |email| doc.add_access_rule(email, 'writer') }
-        @@log.debug "Google Document initialized: #{pad_id}"
+        @@log.debug "Google Document initialized with pad_id: #{pad_id}"
         return pad_id
     end
     
@@ -70,13 +75,14 @@ class StripeEmail
         StripeStore.new.insert(self)
     end
 
-    # Send email to admins notifying them of the email ID
+    # Send email to admins notifying them of the Google Doc ID
     def send_admin_email()
+        admin_email_from = @admin
         admin_email_body = sprintf(@@config['email']['body'], @mail.from, generate_url, @mail.body)
         admin_email_subject = sprintf(@@config['email']['subject_prefix'], @subject)
         editors = @editors.join(',')
         admin_email = Mail.new do
-            from "bot@stripe.com"
+            from admin_email_from
             to editors
             subject admin_email_subject
             body admin_email_body

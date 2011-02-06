@@ -8,7 +8,8 @@ class StripeStore
     @@log = Logger.new(log_file)
 
     # Delete from pstore
-    def delete(email_subject)
+    def delete(email)
+        email_subject = email.subject
         @@log.debug "About to delete email with subject: #{email_subject}"
         @stripe_store.transaction {  @stripe_store.delete(email_subject) }
     end
