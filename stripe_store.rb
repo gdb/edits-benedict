@@ -1,5 +1,5 @@
 require 'pstore'
-require 'StripeEmail'
+require 'stripe_store'
 
 class StripeStore
     # Config

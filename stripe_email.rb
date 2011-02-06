@@ -2,7 +2,7 @@ require 'rubygems'
 require 'gdocs4ruby'
 require 'logger'
 require 'mail'
-require 'StripeStore'
+require 'stripe_store'
 require 'time'
 
 # Class StripeEmail

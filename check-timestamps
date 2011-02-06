@@ -5,7 +5,7 @@ require 'gdocs4ruby'
 require 'logger'
 require 'mail'
 require 'open3'
-require 'StripeStore'
+require 'stripe_store'
 
 store = StripeStore.new
 config = YAML.load_file '/var/stripe/edits-benedict/edits-benedict-cred.conf'

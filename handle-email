@@ -2,7 +2,7 @@
 Dir.chdir('/var/stripe/edits-benedict')
 
 require 'rubygems'
-require 'StripeEmail'
+require 'stripe_email'
 require 'mail'
 
 mail_str = STDIN.read
