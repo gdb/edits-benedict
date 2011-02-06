@@ -2,12 +2,12 @@ require 'pstore'
 require 'StripeEmail'
 
 class StripeStore
-    @@log = Logger.new('stripe_email.log')
+    @@log = Logger.new('edits_benedict.log')
 
     # Delete from pstore
-    def delete(email)
-        raise "Invalid argument to initialize: StripeEmail expected" unless email.class.to_s == "StripeEmail"
-        @stripe_store.transaction {  @stripe_store.delete(email.subject) }
+    def delete(email_subject)
+        @@log.debug "About to delete email with subjec: #{email_subject}"
+        @stripe_store.transaction {  @stripe_store.delete(email_subject) }
     end
    
     # Insert into pstore
