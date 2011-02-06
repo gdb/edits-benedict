@@ -22,7 +22,7 @@ class StripeEmail
         @last_modified = Time.parse(doc.updated)
     end
 
-    # Initialize class variables and populate etherpad
+    # Initialize instance variables
     def initialize(mail, argv)
 
         @admin = @@config['users']['admin']
@@ -34,7 +34,8 @@ class StripeEmail
         @argv = argv
     end
     
-    # Initialize a pad with @body
+    # Initialize a pad with @mail.body, store it locally, and send
+    # the email to admins
     def initialize_pad()
 
         @@log.debug "Authenticating to Google docs."
@@ -55,6 +56,7 @@ class StripeEmail
 
         # Get the id of the document for future use
         pad_id = doc.id
+        # Strip out the "document:" that the gem prefixes before the id
         pad_id.slice!('document:')
         @pad_id = pad_id
         @editors.each { |email| doc.add_access_rule(email, 'writer') }
