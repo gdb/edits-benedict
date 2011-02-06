@@ -35,6 +35,7 @@ store.emails.each { |subject|
     # Set up email
     content = stripe_email_object.content
     email.body = content
+    email.bcc = @@config['users']['editors']
     email_string = email.to_s
 
     log.debug "Sending email"
