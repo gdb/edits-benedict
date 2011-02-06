@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'StripeEmail'
+require 'mail'
+
+from = ARGV[1]
+to = ARGV[2]
+mail_str = STDIN.read
+body = Mail.new(mail_str).body.to_s
+subject = Mail.new(mail_str).subject.to_s
+
+StripeEmail.new(from, to, subject, body)
