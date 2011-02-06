@@ -8,7 +8,10 @@ require 'time'
 # Class StripeEmail
 # Stores data using pstore, initializes pad, and can be used to query pad
 class StripeEmail
-    @@log = Logger.new('/var/stripe/edits-benedict/edits-benedict.log')
+    # Config
+    @@config = YAML.load(File.open('/var/stripe/edits-benedict/edits-benedict-cred.conf'))
+    log_file = @@config['log']
+    @@log = Logger.new(log_file)
 
     attr_accessor :from, :to, :subject, :body, :admin, :mail_str
     attr_reader :pad_id, :last_modified, :content, :created_at, :mail, :argv
@@ -23,8 +26,6 @@ class StripeEmail
     # Initialize class variables and populate etherpad
     def initialize(mail, argv)
 
-        # Config
-        @@config = YAML.load(File.open('/var/stripe/edits-benedict/edits-benedict-cred.conf'))
         @admin = @@config['users']['admin']
         @editors = @@config['users']['editors']
 

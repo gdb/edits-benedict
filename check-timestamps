@@ -9,7 +9,9 @@ require 'StripeStore'
 
 store = StripeStore.new
 config = YAML.load_file '/var/stripe/edits-benedict/edits-benedict-cred.conf'
-log = Logger.new('/var/stripe/edits-benedict/edits-benedict.log')
+log_file = config['log']
+log = Logger.new(log_file)
+
 store.emails.each { |subject|
     stripe_email = store.get_email(subject)
     email = stripe_email.mail

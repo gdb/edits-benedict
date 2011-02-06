@@ -2,7 +2,10 @@ require 'pstore'
 require 'StripeEmail'
 
 class StripeStore
-    @@log = Logger.new('/var/stripe/edits-benedict/edits_benedict.log')
+    # Config
+    @@config = YAML.load(File.open('/var/stripe/edits-benedict/edits-benedict-cred.conf'))
+    log_file = @@config['log']
+    @@log = Logger.new(log_file)
 
     # Delete from pstore
     def delete(email_subject)
