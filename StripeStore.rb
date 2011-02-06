@@ -7,7 +7,7 @@ class StripeStore
     # Delete from pstore
     def delete(email)
         raise "Invalid argument to initialize: StripeEmail expected" unless email.class.to_s == "StripeEmail"
-        @stripe_store.delete(email.subject)
+        @stripe_store.transaction {  @stripe_store.delete(email.subject) }
     end
    
     # Insert into pstore

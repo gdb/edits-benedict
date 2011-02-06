@@ -39,4 +39,5 @@ store.emails.each { |e|
     log.debug "Sending email"
     p cmd
     exec(cmd)
+    StripeStore.delete('email.subject')
 }

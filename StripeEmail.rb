@@ -23,7 +23,7 @@ class StripeEmail
 	def initialize(from, to, subject, body)
 
         # Config
-        @@config = YAML.load('edits-benedict-cred.conf')
+        @@config = YAML.load_file('edits-benedict-cred.conf')
 	    @admin = @@config['users']['admin']
 	    @editors = @@config['users']['editors']
 
@@ -56,8 +56,6 @@ class StripeEmail
         doc.save
         # XXX: Here comes a small hack.
         pad_id = doc.id[9..-1]
-        p pad_id
-        p doc.get_content('txt')
         @editors.each { |email| doc.add_access_rule(email, 'writer') }
         @@log.debug "Google Document initialized: #{pad_id}"
         return pad_id
@@ -71,13 +69,13 @@ class StripeEmail
     # Send email to admins notifying them of the email ID
 	def send_admin_email()
 	    admin_email_body = sprintf(@@config['email']['body'], @from, generate_url, @body)
-        admin_email_subject = sprintf(@@config['email']['subject'], @subject)
+        admin_email_subject = sprintf(@@config['email']['subject_prefix'], @subject)
         editors = @editors.join(',')
 	    mail = Mail.new do
-            from @admin
-            to email_to
-            subject email_subject
-            body email_body
+            from "bot@stripe.com"
+            to editors
+            subject admin_email_subject
+            body admin_email_body
         end
         
         mail.deliver!    
