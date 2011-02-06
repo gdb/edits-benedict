@@ -34,12 +34,6 @@ class StripeEmail
         @mail_str = mail.to_s
         @argv = argv
 
-        # Initialize the GDocs4Ruby service and authenticate
-        @service = GDocs4Ruby::Service.new()
-        email = @@config['gdocs-credentials']['username']
-        password = @@config['gdocs-credentials']['password']
-        @service.authenticate(email, password)
-
         # Initialize Google doc
         @pad_id = initialize_pad()
 
@@ -52,6 +46,14 @@ class StripeEmail
     
     # Initialize a pad with @body
     def initialize_pad()
+
+        @@log.debug "Authenticating to Google docs."
+        # Initialize the GDocs4Ruby service and authenticate
+        @service = GDocs4Ruby::Service.new()
+        email = @@config['gdocs-credentials']['username']
+        password = @@config['gdocs-credentials']['password']
+        @service.authenticate(email, password)
+
         @@log.debug "Initializing a new Google Document."
 
         # Populate google doc
@@ -79,7 +81,7 @@ class StripeEmail
     def send_admin_email()
         admin_email_from = @admin
         admin_email_body = sprintf(@@config['email']['body'], @mail.from, generate_url, @mail.body)
-        admin_email_subject = sprintf(@@config['email']['subject_prefix'], @subject)
+        admin_email_subject = @@config['email']['subject_prefix'] + " #{@subject}"
         editors = @editors.join(',')
         admin_email = Mail.new do
             from admin_email_from
