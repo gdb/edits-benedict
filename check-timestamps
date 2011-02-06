@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+:$.unshift(File.expand_path(__FILE__))
+
 require 'rubygems'
 require 'gdocs4ruby'
 require 'logger'
@@ -8,7 +10,7 @@ require 'open3'
 require 'stripe_store'
 
 store = StripeStore.new
-config = YAML.load_file '/var/stripe/edits-benedict/edits-benedict-cred.conf'
+config = YAML.load_file 'edits-benedict-cred.conf'
 log_file = config['log']
 log = Logger.new(log_file)
 
@@ -35,7 +37,7 @@ store.emails.each { |subject|
     # Set up email
     content = stripe_email_object.content
     email.body = content
-    email.bcc = @@config['users']['editors']
+    email.bcc = email.editors
     email_string = email.to_s
 
     log.debug "Sending email"

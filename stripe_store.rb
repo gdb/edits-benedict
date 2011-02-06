@@ -1,4 +1,6 @@
 require 'pstore'
+
+:$.unshift(File.expand_path(__FILE__))
 require 'stripe_store'
 
 class StripeStore

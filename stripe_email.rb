@@ -2,8 +2,11 @@ require 'rubygems'
 require 'gdocs4ruby'
 require 'logger'
 require 'mail'
-require 'stripe_store'
 require 'time'
+
+:$.unshift(File.expand_path(__FILE__))
+require 'stripe_store'
+
 
 # Class StripeEmail
 # Stores data using pstore, initializes pad, and can be used to query pad
@@ -13,7 +16,7 @@ class StripeEmail
     log_file = @@config['log']
     @@log = Logger.new(log_file)
 
-    attr_reader :pad_id, :last_modified, :content, :created_at, :mail, :argv
+    attr_reader :pad_id, :last_modified, :content, :created_at, :mail, :argv, :editors
 
     # Updates class variables last_modified and content
     def query_pad
