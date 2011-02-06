@@ -3,32 +3,35 @@ require 'gdocs4ruby'
 require 'logger'
 require 'mail'
 require 'StripeStore'
+require 'time'
 
 # Class StripeEmail
 # Stores data using pstore, initializes pad, and can be used to query pad
 class StripeEmail
-    @@log = Logger.new('edits-benedict.log')
+    @@log = Logger.new('/var/stripe/edits-benedict/edits-benedict.log')
 
-	attr_accessor :from, :to, :subject, :body, :admin
-	attr_reader :pad_id, :last_modified, :content, :created_at
+	attr_accessor :from, :to, :subject, :body, :admin, :mail_str
+	attr_reader :pad_id, :last_modified, :content, :created_at, :mail, :argv
 
     # Updates class variables last_modified and content
     def query_pad
         doc = GDocs4Ruby::Document.find(@service, { :id => @pad_id })
         @content = doc.get_content('txt')
-        @last_modified = doc.updated
+        @last_modified = Time.parse(doc.updated)
     end
 
     # Initialize class variables and populate etherpad
-	def initialize(from, to, subject, body)
+	def initialize(mail, argv)
 
         # Config
-        @@config = YAML.load_file('edits-benedict-cred.conf')
+        @@config = YAML.load(File.open('/var/stripe/edits-benedict/edits-benedict-cred.conf'))
 	    @admin = @@config['users']['admin']
 	    @editors = @@config['users']['editors']
 
         @created_at = Time.new
-        @from, @to, @subject, @body = from, to, subject, body
+        @mail = mail
+        @mail_str = mail.to_s
+        @argv = argv
 
         # Initialize the GDocs4Ruby service and authenticate
         @service = GDocs4Ruby::Service.new()
@@ -50,8 +53,8 @@ class StripeEmail
     def initialize_pad()
         @@log.debug "Initializing a new Google Document."
         doc = GDocs4Ruby::Document.new(@service)
-        doc.title = "Email Review: #{@subject}"
-        doc.content = @body
+        doc.title = "Email Review: #{@mail.subject}"
+        doc.content = @mail.body.to_s
         doc.content_type = 'txt'
         doc.save
         # XXX: Here comes a small hack.
@@ -68,17 +71,17 @@ class StripeEmail
 
     # Send email to admins notifying them of the email ID
 	def send_admin_email()
-	    admin_email_body = sprintf(@@config['email']['body'], @from, generate_url, @body)
+	    admin_email_body = sprintf(@@config['email']['body'], @mail.from, generate_url, @mail.body)
         admin_email_subject = sprintf(@@config['email']['subject_prefix'], @subject)
         editors = @editors.join(',')
-	    mail = Mail.new do
+	    admin_email = Mail.new do
             from "bot@stripe.com"
             to editors
             subject admin_email_subject
             body admin_email_body
         end
         
-        mail.deliver!    
+        admin_email.deliver!    
 	end
 	
 	# Generate URL for the export pages of different formats

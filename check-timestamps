@@ -4,21 +4,23 @@ require 'rubygems'
 require 'gdocs4ruby'
 require 'logger'
 require 'mail'
+require 'open3'
 require 'StripeStore'
 
 store = StripeStore.new
-config = YAML.load_file 'edits-benedict-cred.conf'
-log = Logger.new('edits-benedict.log')
-store.emails.each { |e|
-    email = store.get_email(e)
+config = YAML.load_file '/var/stripe/edits-benedict/edits-benedict-cred.conf'
+log = Logger.new('/var/stripe/edits-benedict/edits-benedict.log')
+store.emails.each { |subject|
+    stripe_email = store.get_email(subject)
+    email = stripe_email.mail
 
     # Update values
-    email.query_pad
+    stripe_email.query_pad
     log.debug "Checking timestamps for email from #{email.from} to #{email.to} with subject #{email.subject}"
 
     current_time = Time.new
-    last_modified = email.last_modified
-    created_at = email.created_at
+    last_modified = stripe_email.last_modified
+    created_at = stripe_email.created_at
 
     # See if it's been created at least an hour ago
     next if (current_time - created_at < config['wait-time']['created'])
@@ -28,22 +30,17 @@ store.emails.each { |e|
     # See if it was last updated at least a while ago
     next if (current_time - last_modified < config['wait-time']['last-modified'])
 
-    store.delete(email.subject)
-
     # Set up email
-    content = email.content
-    mail = Mail.new do
-        from 'gdb@stripe.com'
-        to 'chandrasekaran.siddarth@gmail.com'
-        body content
-        subject email.subject
-    end
-    email_string = mail.to_s
+    content = stripe_email.content
+    email.body = content
+    email_string = email.to_s
 
     log.debug "Sending email"
 
-    cmd = "/etc/postfix/filter -f gdb+1@stripe.com chandrasekaran.siddarth@gmail.com <<EOF
-        #{email_string}"
-    p cmd
-    exec(cmd)
+  cmd = ['/etc/postfix/filter'] + stripe_email.argv
+  Open3.popen3(*cmd) do |stdin, stdout, stderr|
+    stdin.write(email_string)
+  end
+
+  store.delete(subject)
 }
